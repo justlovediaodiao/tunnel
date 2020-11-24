@@ -33,6 +33,7 @@ func handlePacket(conn net.PacketConn, taddr net.Addr, nat *nat, buf []byte) {
 	n, addr, err := conn.ReadFrom(buf)
 	if err != nil {
 		log.Printf("read packet error: %v", err)
+		return
 	}
 	// get nat outside address. if none, pick one and relay outside to inside.
 	var rc = nat.Get(addr.String())

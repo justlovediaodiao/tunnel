@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"log"
 )
 
 func main() {
@@ -17,11 +17,11 @@ func main() {
 	go func() {
 		var err = startTCP(laddr, taddr)
 		if err != nil {
-			fmt.Println(err)
+			log.Print(err)
 		}
 	}()
 	var err = startUDP(laddr, taddr)
 	if err != nil {
-		fmt.Println(err)
+		log.Print(err)
 	}
 }
