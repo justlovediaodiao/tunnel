@@ -25,15 +25,15 @@ func (n *nat) Get(key string) net.PacketConn {
 }
 
 func (n *nat) Set(key string, pc net.PacketConn) {
-	n.mutex.RLock()
-	defer n.mutex.RUnlock()
+	n.mutex.Lock()
+	defer n.mutex.Unlock()
 
 	n.m[key] = pc
 }
 
 func (n *nat) Del(key string) net.PacketConn {
-	n.mutex.RLock()
-	defer n.mutex.RUnlock()
+	n.mutex.Lock()
+	defer n.mutex.Unlock()
 
 	pc, ok := n.m[key]
 	if ok {

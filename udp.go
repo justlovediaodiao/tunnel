@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -64,13 +66,16 @@ func handlePacket(conn net.PacketConn, taddr net.Addr, nat *nat, buf []byte) {
 	}
 }
 
-// relayPacket copy packet from left to right with read timeout.
+// relayPacket copy packet from left to right until timeout.
 func relayPacket(left, right net.PacketConn, addr net.Addr) error {
 	var buf = make([]byte, maxPacketSize)
 	for {
 		left.SetReadDeadline(time.Now().Add(relayPacketTimeout)) // wake up when timeout
 		n, _, err := left.ReadFrom(buf)
 		if err != nil {
+			if errors.Is(err, os.ErrDeadlineExceeded) {
+				return nil
+			}
 			return err
 		}
 		_, err = right.WriteTo(buf[:n], addr)

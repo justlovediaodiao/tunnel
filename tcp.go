@@ -1,9 +1,11 @@
 package main
 
 import (
+	"errors"
 	"io"
 	"log"
 	"net"
+	"os"
 	"time"
 )
 
@@ -38,23 +40,25 @@ func handleStream(conn net.Conn, taddr string) {
 	}
 }
 
-// relayStream copy stream from left to right and right to left.
+// relayStream copy between left and right.
 func relayStream(left, right net.Conn) error {
-	ch := make(chan error, 2)
-
+	done := make(chan error, 1)
 	go func() {
 		_, err := io.Copy(right, left)
-		ch <- err
+		done <- err
 		right.SetReadDeadline(time.Now()) // unblock read on right
 	}()
 
 	_, err := io.Copy(left, right)
-	ch <- err
 	left.SetReadDeadline(time.Now()) // unblock read on left
 
-	// the first err is relay error reason.
-	err = <-ch
-	// wait goroutine done
-	<-ch
-	return err
+	// ignore timeout error.
+	err1 := <-done
+	if !errors.Is(err, os.ErrDeadlineExceeded) {
+		return err
+	}
+	if !errors.Is(err1, os.ErrDeadlineExceeded) {
+		return err1
+	}
+	return nil
 }
